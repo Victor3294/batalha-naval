@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Batalha Naval - Estado Local</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #2c3e50; color: white; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(10, 40px); gap: 2px; justify-content: center; margin-top: 20px; }
+        .cell { width: 40px; height: 40px; background-color: #34495e; border: 1px solid #7f8c8d; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .navio { background-color: #27ae60; color: white; }
+        .afundado { background-color: #e74c3c; color: white; }
+        #status { margin-top: 20px; color: #f1c40f; }
+    </style>
+</head>
+<body>
+    <h1>Batalha Naval - Equipe Local</h1>
+    
+    <div class="grid" id="tabuleiro"></div>
+    <h2 id="status">Buscando estado do jogo...</h2>
+
+    <script>
+        // Cria a grade visual 10x10 vazia
+        function criarTabuleiro() {
+            const tab = document.getElementById('tabuleiro');
+            tab.innerHTML = '';
+            for(let l=0; l<10; l++) {
+                for(let c=0; c<10; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `celula-${l}-${c}`;
+                    tab.appendChild(cell);
+                }
+            }
+        }
+
+        // Busca o JSON do servidor em C e pinta o tabuleiro
+        async function atualizarEstado() {
+            try {
+                const res = await fetch('http://127.0.0.1:8080/estado');
+                const data = await res.json();
+                
+                // Limpa visualmente o tabuleiro antes de desenhar o novo frame
+                document.querySelectorAll('.cell').forEach(c => { c.className = 'cell'; c.innerText = ''; });
+
+                data.navios.forEach(navio => {
+                    const idCelula = `celula-${navio.linha}-${navio.coluna}`;
+                    const el = document.getElementById(idCelula);
+                    
+                    if (el) {
+                        if (navio.ativo) {
+                            el.classList.add('navio');
+                            el.innerText = navio.tipo.charAt(0).toUpperCase(); // Coloca a primeira letra (P, S, F)
+                        } else {
+                            el.classList.add('afundado');
+                            el.innerText = 'X';
+                        }
+                    }
+                });
+
+                document.getElementById('status').innerText = data.acabou ? "FIM DE JOGO - Todos os navios foram afundados!" : "Jogo em andamento...";
+            } catch(e) {
+                console.error('Erro ao buscar estado. O servidor C está rodando?', e);
+            }
+        }
+
+        criarTabuleiro();
+        setInterval(atualizarEstado, 1000); // Atualiza a cada 1 segundo (requisito do JS automático)
+    </script>
+</body>
+</html>
