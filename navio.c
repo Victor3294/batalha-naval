@@ -8,15 +8,14 @@
 #define FIFO_PATH "/tmp/batalha_fifo"
 
 void loop_navio(int id) {
-    srand(time(NULL) + id);  // Seed diferente por navio
+    srand(time(NULL) + id);
     int fd = open(FIFO_PATH, O_WRONLY);
     int linha = rand() % 10;
     int coluna = rand() % 10;
     char msg[100];
 
     while(1) {
-        // Movimento randômico em linha e coluna
-        linha = (linha + (rand() % 3 - 1) + 10) % 10;  // -1, 0, +1
+        linha = (linha + (rand() % 3 - 1) + 10) % 10;
         coluna = (coluna + (rand() % 3 - 1) + 10) % 10;
         sprintf(msg, "%d %d %d\n", id, linha, coluna);  // Incluir linha
         write(fd, msg, strlen(msg));

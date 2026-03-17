@@ -7,13 +7,12 @@
 #include "http.h"
 #include "estado.h"
 
-// Função base para responder requisições com cabeçalho HTTP
 void responder(int client, char *body) {
     char response[4096];
     sprintf(response,
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: application/json\r\n"
-        "Access-Control-Allow-Origin: *\r\n" // Essencial para o HTML conseguir ler os dados
+        "Access-Control-Allow-Origin: *\r\n"
         "Connection: close\r\n"
         "\r\n"
         "%s",
@@ -22,7 +21,6 @@ void responder(int client, char *body) {
     write(client, response, strlen(response));
 }
 
-// Endpoint /status exigido pelo professor (mostra linhas ativas e contagem)
 void endpoint_status(int client) {
     char json[1024];
     int p = 0, s = 0, f = 0;
@@ -34,20 +32,17 @@ void endpoint_status(int client) {
             sprintf(tmp, "{\"linha\":%d, \"tipo\":\"%s\"},", navios[i].linha, navios[i].tipo);
             strcat(linhas_json, tmp);
             
-            // Contabiliza os navios ativos
             if(strcmp(navios[i].tipo, "porta_avioes") == 0) p++;
             else if(strcmp(navios[i].tipo, "submarino") == 0) s++;
             else if(strcmp(navios[i].tipo, "fragata") == 0) f++;
         }
     }
-    // Remove a última vírgula da lista JSON
     if(strlen(linhas_json) > 0) linhas_json[strlen(linhas_json)-1] = '\0';
 
     sprintf(json, "{ \"linhas\": [%s], \"quantidade\": {\"porta_avioes\":%d,\"submarinos\":%d,\"fragatas\":%d}}", linhas_json, p, s, f);
     responder(client, json);
 }
 
-// Endpoint /tiro?linha=X&coluna=Y
 void endpoint_tiro(int client, int linha, int coluna) {
     if (ataques[linha][coluna]) {
         responder(client, "{\"resultado\":\"repetido\"}");
@@ -60,7 +55,7 @@ void endpoint_tiro(int client, int linha, int coluna) {
     int pid;
 
     if (verificar_acerto(linha, coluna, tipo, &pontos, &pid)) {
-        kill(pid, SIGKILL); // Elimina o processo do navio atingido
+        kill(pid, SIGKILL);
         char json[200];
         sprintf(json, "{\"resultado\":\"acerto\",\"tipo\":\"%s\",\"pontos\":%d}", tipo, pontos);
         responder(client, json);
@@ -69,7 +64,6 @@ void endpoint_tiro(int client, int linha, int coluna) {
     }
 }
 
-// Endpoint /estado para a página HTML desenhar o tabuleiro
 void endpoint_estado(int client) {
     char json[2048] = "{ \"navios\": [";
     for(int i = 0; i < MAX_NAVIOS; i++) {
@@ -85,7 +79,6 @@ void endpoint_estado(int client) {
     responder(client, json);
 }
 
-// Analisa a URL solicitada e direciona para a função correta
 void processar_requisicao_http(int client, char *buffer) {
     char method[10], path[100];
     if (sscanf(buffer, "%s %s", method, path) < 2) return;

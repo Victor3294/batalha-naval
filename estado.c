@@ -13,12 +13,9 @@ void inicializar_navios() {
         for(j=0; j<TAB_COLUNAS; j++)
             ataques[i][j] = 0;
 
-    // Porta-aviões: 5 células, horizontal
     navios[0] = (Navio){0, "porta_avioes", 0, 0, 5, 0, 1, 5, 0, 0};
-    // Submarinos: 3 células, vertical
     navios[1] = (Navio){1, "submarino", 2, 0, 3, 1, 1, 3, 0, 0};
     navios[2] = (Navio){2, "submarino", 2, 3, 3, 1, 1, 3, 0, 0};
-    // Fragatas: 2 células, horizontal
     navios[3] = (Navio){3, "fragata", 5, 0, 2, 0, 1, 2, 0, 0};
     navios[4] = (Navio){4, "fragata", 7, 0, 2, 0, 1, 2, 0, 0};
     navios[5] = (Navio){5, "fragata", 9, 0, 2, 0, 1, 2, 0, 0};
@@ -27,13 +24,12 @@ void inicializar_navios() {
 int verificar_acerto(int linha, int coluna, char *tipo, int *pontos, int *pid) {
     for(int i=0; i<MAX_NAVIOS; i++) {
         if(navios[i].ativo) {
-            // Verificar se a posição está ocupada pelo navio
             int hit = 0;
-            if(navios[i].orientacao == 0) {  // Horizontal
+            if(navios[i].orientacao == 0) {
                 if(linha == navios[i].linha && coluna >= navios[i].coluna && coluna < navios[i].coluna + navios[i].tamanho) {
                     hit = 1;
                 }
-            } else {  // Vertical
+            } else {
                 if(coluna == navios[i].coluna && linha >= navios[i].linha && linha < navios[i].linha + navios[i].tamanho) {
                     hit = 1;
                 }
@@ -41,15 +37,13 @@ int verificar_acerto(int linha, int coluna, char *tipo, int *pontos, int *pid) {
             if(hit) {
                 navios[i].celulas_atingidas++;
                 if(navios[i].celulas_atingidas >= navios[i].tamanho) {
-                    // Navio afundou
                     strcpy(tipo, navios[i].tipo);
                     *pontos = navios[i].pontos;
                     *pid = navios[i].pid;
                     navios[i].ativo = 0;
                     return 1;
                 }
-                // Acerto parcial (não retorna como acerto completo ainda)
-                return 0;  // Ou ajustar para indicar "acerto parcial" se necessário
+                return 0;
             }
         }
     }

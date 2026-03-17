@@ -18,16 +18,13 @@ void criar_navios() {
         pid_t pid = fork();
 
         if(pid == 0) {
-            // Processo filho substitui sua imagem pelo executável do navio
             char id_str[10];
             sprintf(id_str, "%d", i);
             execl("./navio", "navio", id_str, NULL);
             
-            // Se o execl falhar, imprime o erro
             perror("Erro ao executar navio. Lembre-se de rodar o 'make all'");
             exit(1);
         }
-        // Processo pai registra o PID
         navios[i].pid = pid;
     }
 }
@@ -40,7 +37,6 @@ int main() {
     int fifo = open(FIFO_PATH, O_RDONLY | O_NONBLOCK);
     int server = socket(AF_INET, SOCK_STREAM, 0);
 
-    // Isso evita o erro "Address already in use" se você fechar e abrir rápido o servidor
     int opt = 1;
     setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
@@ -61,12 +57,10 @@ int main() {
         FD_SET(server, &fds);
         FD_SET(fifo, &fds);
 
-        // O select precisa do maior descritor de arquivo + 1 para funcionar corretamente
         int max_fd = (server > fifo) ? server : fifo;
         
         select(max_fd + 1, &fds, NULL, NULL, NULL);
 
-        // Verifica se a FIFO mandou dados (Navio se moveu)
         if(FD_ISSET(fifo, &fds)) {
             char buf[256];
             int n = read(fifo, buf, sizeof(buf) - 1);
@@ -76,7 +70,6 @@ int main() {
             }
         }
 
-        // Verifica se chegou uma requisição web na porta 8080 (Ataque ou Atualização de página)
         if(FD_ISSET(server, &fds)) {
             int client = accept(server, NULL, NULL);
             char buffer[1024];
